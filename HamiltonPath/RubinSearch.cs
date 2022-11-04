@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-public class RubinSearch
+public static class RubinSearch
 {
     #region Rules
     /* 
@@ -39,7 +40,7 @@ D3. Delete any arc which forms a closed circuit with required arcs, unless it co
     pletes the Hamilton circuit.
 
     F. Failure, or termination, rules:
-F1. Fail if any vertex becomes isolated, t h a t is, has no incident arc.
+F1. Fail if any vertex becomes isolated, that is, has no incident arc.
 F2. Fail if any vertex has only one incident arc.
 F3. Fail if any vertex has no directed arc entering (leaving).
 F4. Fail if any vertex has two required directed arcs entering (leaving).
@@ -61,12 +62,17 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
     */
     #endregion
 
-    public bool HasHamiltonCycle(AdjGraph g, int initialIndex)
+    public static bool HasHamiltonCycle(AdjGraph original, int initialIndex)
     {
-
+        AdjGraph g = new AdjGraph(original);
+        int numVertices = original.numVertices;
+        List<int> partialPath = new List<int>();
+        List<int[]> required  = new List<int[]>();
+        List<int[]> deleted   = new List<int[]>();
+        List<int[]> undecided = original.GetAllEdges();
 
         return false;
     }
 
-    public bool HasHamiltonCycle(AdjGraph g) { return HasHamiltonCycle(g, 0); }
+    public static bool HasHamiltonCycle(AdjGraph original) { return HasHamiltonCycle(original, 0); }
 }
