@@ -5,11 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-public static class RubinSearch
+public class RubinSearch
 {
     #region Rules
     /* 
-    Search Rules
+    S. Search Rules
 S1. Select any single node as the initial path.
 S2. Test the path for admissibility.
 S3. If the path so far is admissible, list the successors of the last node chosen, and extend the path
@@ -62,17 +62,139 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
     */
     #endregion
 
-    public static bool HasHamiltonCycle(AdjGraph original, int initialIndex)
+    private AdjGraph g;
+    private int numVertices;
+    private List<int> partialPath;
+    private List<int[]> required;
+    private List<int[]> deleted;
+    private List<int[]> undecided;
+    public bool HasHamiltonCycle(AdjGraph original, int initialNode)
     {
-        AdjGraph g = new AdjGraph(original);
-        int numVertices = original.numVertices;
-        List<int> partialPath = new List<int>();
-        List<int[]> required  = new List<int[]>();
-        List<int[]> deleted   = new List<int[]>();
-        List<int[]> undecided = original.GetAllEdges();
+        g = new AdjGraph(original);
+        numVertices = original.numVertices;
+        partialPath = new List<int>();
+        required    = new List<int[]>();
+        deleted     = new List<int[]>();
+        undecided   = original.GetAllEdges();
+
+        int searchIndex = 0;
+        Queue<int>[] potentialNodes = new Queue<int>[original.numVertices];
+        for (int i=0; i < original.numVertices; i++)
+            potentialNodes[i] = new Queue<int>();
+        while (partialPath.Count < numVertices)
+        {
+            // S4. Else if path is inadmissible, delete last node and choose next from list. 
+
+            // S5. If list empty, delete last node prior to list. 
+
+            // S6. If all extensions from a node a inadmissable, return false. 
+
+            // S7. If a successor of the last node is origin, return true. 
+
+            if (PathAdmissible())   // S2. Test path for admissibility
+            {
+                // S3. If path admissible, list successors of last node and extend path to first of these. 
+                Queue<int> successors = new Queue<int>();
+                for (int i=0;i< partialPath.Count; i++)
+                    successors.Enqueue(partialPath[i]);
+
+                while (successors.Count > numVertices)
+                {
+                    partialPath.Add(successors.Dequeue());
+                    if (PathAdmissible())
+                    {
+                        continue; // probably incorrect
+                    }
+                    else// S4. Else if path is inadmissible, delete last node and choose next from list. 
+                        partialPath.RemoveAt(partialPath.Count - 1);
+                }
+
+                // S5. If list empty, delete last node prior to list. 
+                partialPath.RemoveAt(partialPath.Count - 1);
+
+            }
+
+            // Iterative plan. 
+            // Make an array of int queues length numVertices. 
+            // When a node is accepted, increment the index to the array of queues. 
+            // When the queue at a point is emptied, decrement this index. 
+            // If a successor is the initial node, and the array of queues index is numVertices return true. 
+            if (searchIndex < 0)
+                return false;
+
+        }
 
         return false;
     }
 
-    public static bool HasHamiltonCycle(AdjGraph original) { return HasHamiltonCycle(original, 0); }
+    public bool PathAdmissible()
+    {
+        return false;
+    }
+
+    public bool EdgeRequired(int u, int v)
+    {
+        // Handles R1 and R2. 
+        return g.GetDegree(u) < 2 || g.GetDegree(v) < 2;
+    }
+
+    public void DeleteEdges(int vertex) // Deciding for vertex
+    {
+        List<int[]> edgesToDelete = new List<int[]>();
+        List<int[]> requiredEdges = new List<int[]>();
+        List<int[]> undecidedEdges = GetAllUndecidedOfNode(vertex);
+        foreach (int[] edge in required)
+        {
+            if (edge[0] == vertex || edge[1] == vertex)
+                requiredEdges.Add(edge);
+        }
+
+        // D1. If a vertex has two required arcs incident, then all undecided arcs incident may be deleted. 
+        if (requiredEdges.Count == 2)
+        {
+            for (int i=0;i<undecidedEdges.Count;i++)
+                edgesToDelete.Add(undecidedEdges[i]);
+        } 
+        else
+        {
+            // D2. If a vertex has a required directed arc entering(leaving), then all undecided directed arcs entering(leaving) may be deleted.
+            bool[] deleteSimilarEdges = { false, false };
+            foreach (int[] reqEdge in requiredEdges)
+            {
+                if (reqEdge[0] == vertex) // Delete all other outgoing vertices
+                    deleteSimilarEdges[0] = true;
+                if (reqEdge[1] == vertex) // Delete all other incoming vertives
+                    deleteSimilarEdges[1] = true;
+            }
+            foreach (int[] edge in undecidedEdges)
+            {
+                if (edge[0] == vertex && deleteSimilarEdges[0])
+                    edgesToDelete.Add(edge);
+                if (edge[1] == vertex && deleteSimilarEdges[1])
+                    edgesToDelete.Add(edge);
+            }
+        }
+
+        // D3. Delete any arc which forms a closed circuit with required arcs, unless it completes the Hamilton circuit
+        // I don't know what this means
+
+        // Finished, now remove the collated list. 
+        for (int i = 0; i < edgesToDelete.Count; i++)
+        {
+            deleted.Add(edgesToDelete[i]);
+            undecided.Remove(edgesToDelete[i]);
+            g.RemoveEdgeDirected(edgesToDelete[i]);
+        }
+    }
+
+    public List<int[]> GetAllUndecidedOfNode(int vertex)
+    {
+        List<int[]> ret = new List<int[]>();
+        foreach (int[] edge in undecided)
+            if (edge[0] == vertex || edge[1] == vertex)
+                ret.Add(edge);
+        return ret;
+    }
+
+    public bool HasHamiltonCycle(AdjGraph original) { return HasHamiltonCycle(original, 0); }
 }

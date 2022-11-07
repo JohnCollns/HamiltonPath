@@ -33,8 +33,8 @@ public class AdjGraph
     }
 
     public void AddEdgeDirected(int entering, int leaving)
-    {
-        if (UVExist(entering, leaving))
+    {   // O(E)
+        if (UVExist(entering, leaving) || entering == leaving)
             return;
         edges[entering].Add(leaving);
     }
@@ -46,7 +46,7 @@ public class AdjGraph
     }
 
     public void RemoveEdgeDirected(int entering, int leaving)
-    {
+    {   // O(E)
         for (int i=0; i < edges[entering].Count; i++)
         {
             if (edges[entering][i] == leaving)
@@ -57,16 +57,29 @@ public class AdjGraph
         }
     }
 
+    public void RemoveEdgeDirected(int[] edge) { RemoveEdgeDirected(edge[0], edge[1]); }
+
     public void RemoveEdgeUni(int entering, int leaving)
-    {
+    {   // O(2E)
         RemoveEdgeDirected(entering, leaving);
         RemoveEdgeDirected(leaving,  entering);
     }
 
-    public int GetOutwardDegree(int vertex) { return edges[vertex].Count; }
+    public int GetOutwardDegree(int vertex) { return edges[vertex].Count; } // O(1)
+
+    public int GetDegree(int vertex)
+    {
+        int inwardCount = 0;
+        for (int i=0; i < numVertices; i++)
+            for (int j=0; j < edges[i].Count; j++)
+                inwardCount += (edges[i][j] == vertex) ? 1 : 0;
+        for (int i = 0; i < edges[vertex].Count; i++)   // Decrement for any bidirectional edges, so they do not count for two edges. 
+            inwardCount -= (UVBiDirectional(vertex, edges[vertex][i])) ? 1 : 0;
+        return inwardCount + edges[vertex].Count;
+    }
 
     public bool UVExist(int u, int v)
-    {
+    {   // O(E)
         for (int i=0; i < edges[u].Count; i++)
         {
             if (edges[u][i] == v)
@@ -76,7 +89,7 @@ public class AdjGraph
     }
 
     public bool UVBiDirectional(int u, int v)
-    {
+    {   // O(2E)
         return UVExist(u, v) && UVExist(v, u);
     }
 
@@ -104,7 +117,7 @@ public class AdjGraph
     }
 
     public bool TerminateF1F2()
-    {
+    {   // O(VE)
         bool[] hasEntering = new bool[numVertices];
         bool[] hasLeaving  = new bool[numVertices];
         for (int i=0; i < edges.Count; i++)
@@ -126,11 +139,21 @@ public class AdjGraph
     }
 
     public List<int[]> GetAllEdges()
-    {
+    {   // O(E)
         List<int[]> retEdges = new List<int[]>();
         for (int i=0; i < edges.Count; i++)
             for (int j=0; j < edges[i].Count; j++)
                 retEdges.Add(new int[2] { i, edges[i][j] });
+        return retEdges;
+    }
+
+    public List<int[]> GetAllEdgesOfNode(int vertex)
+    {   // O(E)
+        List<int[]> retEdges = new List<int[]>();
+        for (int i = 0; i < edges.Count; i++)
+            for (int j = 0; j < edges[i].Count; j++)
+                if (i == vertex || j == vertex)
+                    retEdges.Add(new int[2] { i, edges[i][j] });
         return retEdges;
     }
 
