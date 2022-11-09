@@ -228,6 +228,18 @@ namespace UnitTests
             Assert.True(search.HasHamiltonCycle(g));
         }
         [Fact]
+        public void SimplePentagon()
+        {
+            AdjGraph g = new AdjGraph(5);
+            g.AddEdgeDirected(0, 1);
+            g.AddEdgeDirected(1, 2);
+            g.AddEdgeDirected(2, 3);
+            g.AddEdgeDirected(3, 4);
+            g.AddEdgeDirected(4, 0);
+            RubinSearch search = new RubinSearch();
+            Assert.True(search.HasHamiltonCycle(g));
+        }
+        [Fact]
         public void SimpleUniTriangle()
         {
             AdjGraph g = new AdjGraph(3);

@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 public class RubinSearch
 {
@@ -65,7 +67,7 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
     private AdjGraph g;
     private int numVertices;
     private List<int> partialPath;
-    private HashSet<int[]> required;
+    private List<int[]> required;
     private List<int[]> deleted;
     private List<int[]> undecided;
     private int initialNode;
@@ -76,7 +78,7 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
         g = new AdjGraph(original);
         numVertices = original.numVertices;
         partialPath = new List<int>();
-        required    = new HashSet<int[]>();
+        required    = new List<int[]>();
         deleted     = new List<int[]>();
         undecided   = original.GetAllEdges();
         this.initialNode = initialNode;
@@ -87,7 +89,7 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
         for (int i=0; i < original.numVertices; i++)
             potentialNodes[i] = new Queue<int>();
 
-        while (partialPath.Count < numVertices)
+        while (partialPath.Count <= numVertices)
         {
             // Iterative plan. 
             // Make an array of int queues length numVertices. 
@@ -98,7 +100,7 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
                 return false;
             if (PathAdmissible())   
             {
-                if (searchIndex == g.numVertices - 2) // S7. If a successor of the last node is the origin, a hamilton ciruit is formed. 
+                if (searchIndex == g.numVertices - 1) // S7. If a successor of the last node is the origin, a hamilton ciruit is formed. 
                     foreach (int outgoingEdge in g.GetAllOutwardEdgesOfNode(partialPath[searchIndex]))
                         if (outgoingEdge == initialNode)
                             return true;
@@ -114,7 +116,7 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
             }
             else // S4. Delete last node and choose next listed successor of previous node
             {
-                partialPath.Remove(partialPath.Count - 1);
+                partialPath.Remove(partialPath.Count - 1); // we should make sure that this is functioning
                 searchIndex--;
                 if (potentialNodes[searchIndex].Count > 0)
                 {
@@ -132,17 +134,18 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
 
     public bool PathAdmissible()
     {
-        bool admissible = true;
         int vertex = partialPath.Last();
         List<int[]> edgesOfVertex = g.GetAllEdgesOfNode(vertex);
         foreach (int[] edge in edgesOfVertex)
         {
-            if (EdgeRequired(edge[0], edge[1]))
+            if (EdgeRequired(edge[0], edge[1]) && !ListContains(required, edge))
             {
                 required.Add(edge);
-                undecided.Remove(edge);
+                //bool result = undecided.Remove(edge);
+                RemoveFromList(undecided, edge);
             }
         }
+        AssignDirection(vertex);
         DeleteEdges(vertex);
 
         // Failure cases
@@ -153,8 +156,8 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
         // each time a vertex is seen in one of the two positions, mark it. If it happens a third time fail, at the end if its not all true fail
         List<int> reqPath = new List<int>();
         reqPath.Add(initialNode);
-        bool[] hasEntering = new bool[partialPath.Count];
-        bool[] hasLeaving  = new bool[partialPath.Count];
+        bool[] hasEntering = new bool[numVertices]; // not sure +1 is correct solution
+        bool[] hasLeaving  = new bool[numVertices];
         foreach (int[] reqEdge in required)
         {
             if (!hasLeaving[reqEdge[0]])
@@ -166,14 +169,28 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
             else
                 return false;
             reqPath.Add(reqEdge[1]);
-            for (int i = 0; i < reqPath.Count; i++)
-            {
-                if (reqPath[i] == reqPath.Last() && reqPath.Last() != initialNode)
-                    return false;   // F6
-            }
+            if (DFSLoop(reqPath))
+                return false;
+            //for (int i = 0; i < reqPath.Count; i++)
+            //{
+            //    if (reqPath[i] == reqPath.Last() && reqPath.Last() != initialNode && i != numVertices - 2) // check its not just the next in the path
+            //        return false;   // F6
+            //}
         }
 
         return true;
+    }
+
+    private bool DFSLoop(List<int> path)
+    {
+        List<int> visitedNodes = new List<int>();
+        foreach (int node in path)
+        {
+            if (visitedNodes.Contains(node) && !(path.Count == numVertices + 1 && node == initialNode))
+                return true; // a loop is detected
+            visitedNodes.Add(node);
+        }
+        return false;
     }
 
     public bool EdgeRequired(int u, int v)
@@ -190,15 +207,21 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
         List<int[]> undecidedEdges = GetAllUndecidedOfNode(vertex);
         foreach (int[] edge in required)
         {
-            if (edge[0] == vertex || edge[1] == vertex)
+            if (edge[0] == vertex || edge[1] == vertex) { 
                 requiredEdges.Add(edge);
+                //bool edgeIn = undecidedEdges.Contains(edge);
+                //bool result = undecidedEdges.Remove(edge);
+                RemoveFromList(undecidedEdges, edge);
+            }
         }
 
         // D1. If a vertex has two required arcs incident, then all undecided arcs incident may be deleted. 
         if (requiredEdges.Count == 2)
         {
-            for (int i=0;i<undecidedEdges.Count;i++)
-                edgesToDelete.Add(undecidedEdges[i]);
+            //for (int i=0;i<undecidedEdges.Count;i++)
+            //    edgesToDelete.Add(undecidedEdges[i]);
+            foreach (int[] edge in undecidedEdges)
+                edgesToDelete.Add(edge);
         } 
         else
         {
@@ -239,7 +262,47 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
         for (int i = 0; i < edgesToDelete.Count; i++)
         {
             deleted.Add(edgesToDelete[i]);
-            undecided.Remove(edgesToDelete[i]);
+            //undecided.Remove(edgesToDelete[i]);
+            RemoveFromList(undecided, edgesToDelete[i]);
+            g.RemoveEdgeDirected(edgesToDelete[i]);
+        }
+    }
+
+    public void AssignDirection(int node)
+    {
+        // get all undecided vertices of node
+        // get required nodes about node
+        // if has a required node in one direction, reform all bidirectional nodes into just opposing required direction. 
+        bool hasRequiredEntering = false;
+        bool hasRequiredLeaving  = false;
+        foreach (int[] reqEdge in required)
+        {
+            if (reqEdge[0] == node)
+                hasRequiredLeaving = true;
+            if (reqEdge[1] == node)
+                hasRequiredEntering = true;
+        }
+        List<int[]> edgesToDelete = new List<int[]>();
+        List<int[]> localUndecided = GetAllUndecidedOfNode(node);
+        foreach (int[] edge in localUndecided)
+        {
+            if (hasRequiredEntering && edge[1] == node)
+            {
+                if (g.UVBiDirectional(edge[0], edge[1]))
+                    edgesToDelete.Add(new int[] { edge[0], edge[1] });
+            }
+            if (hasRequiredLeaving && edge[0] == node)
+            {
+                if (g.UVBiDirectional(edge[0], edge[1]))
+                    edgesToDelete.Add(new int[] { edge[1], edge[0] });
+            }
+        }
+        // carry out deletions 
+        for (int i = 0; i < edgesToDelete.Count; i++)
+        {
+            deleted.Add(edgesToDelete[i]);
+            //undecided.Remove(edgesToDelete[i]);
+            RemoveFromList(undecided, edgesToDelete[i]);
             g.RemoveEdgeDirected(edgesToDelete[i]);
         }
     }
@@ -251,6 +314,34 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
             if (edge[0] == vertex || edge[1] == vertex)
                 ret.Add(edge);
         return ret;
+    }
+
+    // Forgive me for this terrible function, this is what C# should be doing, but it's actually comparing pointers. 
+    public void RemoveFromList(List<int[]> list, int[] item)
+    {
+        int index = -1;
+        for (int i=0; i < list.Count; i++)
+        {
+            if (list[i][0] == item[0] || list[i][1] == item[1])
+            {
+                index = i;
+                break;
+            }
+        }
+        if (index != -1)
+            list.RemoveAt(index);
+    }
+
+    public bool ListContains(List<int[]> list, int[] edge)
+    {
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (list[i][0] == edge[0] || list[i][1] == edge[1])
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     public bool HasHamiltonCycle(AdjGraph original) { return HasHamiltonCycle(original, 0); }
