@@ -94,7 +94,7 @@ namespace UnitTests
         public void TerminateF1F2In1Graph()
         {
             var g = new AdjGraph(1);
-            Assert.True(g.TerminateF1F2());
+            Assert.True(g.TerminateF1F2F3());
         }
         [Fact]
         public void TerminateF1F2InSmallGraph()
@@ -105,7 +105,7 @@ namespace UnitTests
             g.AddEdgeDirected(1, 0);
             g.AddEdgeDirected(3, 2);
             g.AddEdgeDirected(0, 3);
-            Assert.True(g.TerminateF1F2());
+            Assert.True(g.TerminateF1F2F3());
         }
         [Fact]
         public void TerminateF1F2InArray()
@@ -113,7 +113,7 @@ namespace UnitTests
             var g = new AdjGraph(3);
             g.AddEdgeDirected(0, 1);
             g.AddEdgeDirected(1, 2);
-            Assert.True(g.TerminateF1F2());
+            Assert.True(g.TerminateF1F2F3());
         }
         [Fact]
         public void TerminateF1F2InTree()
@@ -123,7 +123,7 @@ namespace UnitTests
             g.AddEdgeDirected(1, 2);
             g.AddEdgeDirected(0, 3);
             g.AddEdgeDirected(3, 4);
-            Assert.True(g.TerminateF1F2());
+            Assert.True(g.TerminateF1F2F3());
         }
         [Fact]
         public void DoNotTerminateF1F2InSmallGraph()
@@ -136,7 +136,7 @@ namespace UnitTests
             g.AddEdgeDirected(0, 3);
             g.AddEdgeUni(4, 0);
             g.AddEdgeDirected(2,3);
-            Assert.False(g.TerminateF1F2());
+            Assert.False(g.TerminateF1F2F3());
         }
         [Fact]
         public void GetAllEdgesCorrectLength1()
@@ -213,5 +213,42 @@ namespace UnitTests
             g.AddEdgeUni(1, 2);
             Assert.Equal(2, g.GetDegree(1));
         }
+    }
+
+    public class HamiltonCircuitTests
+    {
+        [Fact]
+        public void SimpleTriangle()
+        {
+            AdjGraph g = new AdjGraph(3);
+            g.AddEdgeDirected(0, 1);
+            g.AddEdgeDirected(1, 2);
+            g.AddEdgeDirected(2, 0);
+            RubinSearch search = new RubinSearch();
+            Assert.True(search.HasHamiltonCycle(g));
+        }
+        [Fact]
+        public void SimpleUniTriangle()
+        {
+            AdjGraph g = new AdjGraph(3);
+            g.AddEdgeUni(0, 1);
+            g.AddEdgeUni(1, 2);
+            g.AddEdgeUni(2, 0);
+            RubinSearch search = new RubinSearch();
+            Assert.True(search.HasHamiltonCycle(g));
+        }
+        [Fact]
+        public void LoopWithOneLeaf()
+        {
+            AdjGraph g = new AdjGraph(5);
+            g.AddEdgeDirected(0, 1);
+            g.AddEdgeDirected(1, 2);
+            g.AddEdgeDirected(2, 3);
+            g.AddEdgeDirected(3, 0);
+            g.AddEdgeDirected(1, 4);
+            RubinSearch search = new RubinSearch();
+            Assert.False(search.HasHamiltonCycle(g));
+        }
+
     }
 }

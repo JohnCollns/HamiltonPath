@@ -65,55 +65,30 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
     private AdjGraph g;
     private int numVertices;
     private List<int> partialPath;
-    private List<int[]> required;
+    private HashSet<int[]> required;
     private List<int[]> deleted;
     private List<int[]> undecided;
+    private int initialNode;
+
+    public RubinSearch() { } // Gets initialised in the search function instead. 
     public bool HasHamiltonCycle(AdjGraph original, int initialNode)
     {
         g = new AdjGraph(original);
         numVertices = original.numVertices;
         partialPath = new List<int>();
-        required    = new List<int[]>();
+        required    = new HashSet<int[]>();
         deleted     = new List<int[]>();
         undecided   = original.GetAllEdges();
+        this.initialNode = initialNode;
 
         int searchIndex = 0;
+        partialPath.Add(initialNode);
         Queue<int>[] potentialNodes = new Queue<int>[original.numVertices];
         for (int i=0; i < original.numVertices; i++)
             potentialNodes[i] = new Queue<int>();
+
         while (partialPath.Count < numVertices)
         {
-            // S4. Else if path is inadmissible, delete last node and choose next from list. 
-
-            // S5. If list empty, delete last node prior to list. 
-
-            // S6. If all extensions from a node a inadmissable, return false. 
-
-            // S7. If a successor of the last node is origin, return true. 
-
-            if (PathAdmissible())   // S2. Test path for admissibility
-            {
-                // S3. If path admissible, list successors of last node and extend path to first of these. 
-                Queue<int> successors = new Queue<int>();
-                for (int i=0;i< partialPath.Count; i++)
-                    successors.Enqueue(partialPath[i]);
-
-                while (successors.Count > numVertices)
-                {
-                    partialPath.Add(successors.Dequeue());
-                    if (PathAdmissible())
-                    {
-                        continue; // probably incorrect
-                    }
-                    else// S4. Else if path is inadmissible, delete last node and choose next from list. 
-                        partialPath.RemoveAt(partialPath.Count - 1);
-                }
-
-                // S5. If list empty, delete last node prior to list. 
-                partialPath.RemoveAt(partialPath.Count - 1);
-
-            }
-
             // Iterative plan. 
             // Make an array of int queues length numVertices. 
             // When a node is accepted, increment the index to the array of queues. 
@@ -121,7 +96,35 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
             // If a successor is the initial node, and the array of queues index is numVertices return true. 
             if (searchIndex < 0)
                 return false;
+            if (PathAdmissible())   
+            {
+                if (searchIndex == g.numVertices - 2) // S7. If a successor of the last node is the origin, a hamilton ciruit is formed. 
+                    foreach (int outgoingEdge in g.GetAllOutwardEdgesOfNode(partialPath[searchIndex]))
+                        if (outgoingEdge == initialNode)
+                            return true;
 
+                // S3. List successors
+                foreach (int outgoingEdge in g.GetAllOutwardEdgesOfNode(partialPath[searchIndex]))
+                    potentialNodes[searchIndex].Enqueue(outgoingEdge);
+                //foreach (int[] edge in g.GetAllEdgesOfNode(partialPath[searchIndex]))]
+                //potentialNodes[searchIndex].Enqueue(edge[0] == partialPath[searchIndex] ? edge[1] : edge[0]);
+                partialPath.Add(potentialNodes[searchIndex].Dequeue()); // And extend path to first of these
+                searchIndex++;
+                continue;
+            }
+            else // S4. Delete last node and choose next listed successor of previous node
+            {
+                partialPath.Remove(partialPath.Count - 1);
+                searchIndex--;
+                if (potentialNodes[searchIndex].Count > 0)
+                {
+                    partialPath.Add(potentialNodes[searchIndex].Dequeue()); // And extend path to first of these
+                    searchIndex++;
+                    continue;
+                }
+                else
+                    continue; // S5. If all extensions from a node are inadmissable, try from node before it
+            }
         }
 
         return false;
@@ -129,13 +132,55 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
 
     public bool PathAdmissible()
     {
-        return false;
+        bool admissible = true;
+        int vertex = partialPath.Last();
+        List<int[]> edgesOfVertex = g.GetAllEdgesOfNode(vertex);
+        foreach (int[] edge in edgesOfVertex)
+        {
+            if (EdgeRequired(edge[0], edge[1]))
+            {
+                required.Add(edge);
+                undecided.Remove(edge);
+            }
+        }
+        DeleteEdges(vertex);
+
+        // Failure cases
+        if (g.TerminateF1F2F3())
+            return false;
+        // Handle F4,5,6
+        // go through all req edges, with two bool arrays, for entering and leaving. 
+        // each time a vertex is seen in one of the two positions, mark it. If it happens a third time fail, at the end if its not all true fail
+        List<int> reqPath = new List<int>();
+        reqPath.Add(initialNode);
+        bool[] hasEntering = new bool[partialPath.Count];
+        bool[] hasLeaving  = new bool[partialPath.Count];
+        foreach (int[] reqEdge in required)
+        {
+            if (!hasLeaving[reqEdge[0]])
+                hasLeaving[reqEdge[0]] = true;
+            else
+                return false;
+            if (!hasEntering[reqEdge[1]])
+                hasEntering[reqEdge[1]] = true;
+            else
+                return false;
+            reqPath.Add(reqEdge[1]);
+            for (int i = 0; i < reqPath.Count; i++)
+            {
+                if (reqPath[i] == reqPath.Last() && reqPath.Last() != initialNode)
+                    return false;   // F6
+            }
+        }
+
+        return true;
     }
 
     public bool EdgeRequired(int u, int v)
     {
         // Handles R1 and R2. 
-        return g.GetDegree(u) < 2 || g.GetDegree(v) < 2;
+        return (g.GetInwardDegree(u) < 2 || g.GetOutwardDegree(u) < 2) || (g.GetInwardDegree(v) < 2 || g.GetOutwardDegree(v) < 2) || (g.GetDegree(u) < 2 || g.GetDegree(v) < 2);
+        //return g.GetDegree(u) < 2 || g.GetDegree(v) < 2;
     }
 
     public void DeleteEdges(int vertex) // Deciding for vertex
@@ -176,7 +221,19 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
         }
 
         // D3. Delete any arc which forms a closed circuit with required arcs, unless it completes the Hamilton circuit
-        // I don't know what this means
+        // if the arc connects to any node already on the path, delete it. Unless, it completes the circuit. 
+        foreach (int[] edge in undecidedEdges)//undecided
+        {
+            if (edge[1] == initialNode)//partialPath.Count == numVertices - 1 && 
+                continue;
+            for (int i = 0; i < partialPath.Count; i++)
+            {
+                if (i == partialPath.Count - 1)
+                    continue;
+                if (edge[1] == partialPath[i])
+                    edgesToDelete.Add(edge);
+            }
+        }
 
         // Finished, now remove the collated list. 
         for (int i = 0; i < edgesToDelete.Count; i++)

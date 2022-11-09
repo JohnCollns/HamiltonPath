@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+// A better data structure would have been to have Nodes, each with a list of incoming and outgoing nodes. 
+// There is a great deal of two way traversal in the search, and that structure would have handled it better. 
 public class AdjGraph
 {
     public int numVertices { get; }
@@ -23,10 +25,10 @@ public class AdjGraph
     public AdjGraph(AdjGraph original)
     {
         numVertices = original.numVertices;
-        edges = new List<List<int>>(numVertices);
+        edges = new List<List<int>>();
         for (int i = 0; i < numVertices; i++)
         {
-            edges[i] = new List<int>();
+            edges.Add(new List<int>());
             for (int j = 0; j < original.edges[i].Count; j++)
                 edges[i].Add(original.edges[i][j]);
         }
@@ -78,6 +80,15 @@ public class AdjGraph
         return inwardCount + edges[vertex].Count;
     }
 
+    public int GetInwardDegree(int vertex)
+    {
+        int inwardCount = 0;
+        for (int i = 0; i < numVertices; i++)
+            for (int j = 0; j < edges[i].Count; j++)
+                inwardCount += (edges[i][j] == vertex) ? 1 : 0;
+        return inwardCount;
+    }
+
     public bool UVExist(int u, int v)
     {   // O(E)
         for (int i=0; i < edges[u].Count; i++)
@@ -116,7 +127,7 @@ public class AdjGraph
         return -1;
     }
 
-    public bool TerminateF1F2()
+    public bool TerminateF1F2F3()
     {   // O(VE)
         bool[] hasEntering = new bool[numVertices];
         bool[] hasLeaving  = new bool[numVertices];
@@ -156,6 +167,8 @@ public class AdjGraph
                     retEdges.Add(new int[2] { i, edges[i][j] });
         return retEdges;
     }
+
+    public List<int> GetAllOutwardEdgesOfNode(int vertex) { return edges[vertex]; }
 
     public void PrintEdges()
     {
