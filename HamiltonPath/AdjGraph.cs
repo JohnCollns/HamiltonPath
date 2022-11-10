@@ -163,7 +163,7 @@ public class AdjGraph
         List<int[]> retEdges = new List<int[]>();
         for (int i = 0; i < edges.Count; i++)
             for (int j = 0; j < edges[i].Count; j++)
-                if (i == vertex || j == vertex)
+                if (i == vertex || edges[i][j] == vertex)
                     retEdges.Add(new int[2] { i, edges[i][j] });
         return retEdges;
     }

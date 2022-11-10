@@ -116,8 +116,10 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
             }
             else // S4. Delete last node and choose next listed successor of previous node
             {
-                partialPath.Remove(partialPath.Count - 1); // we should make sure that this is functioning
+                partialPath.RemoveAt(partialPath.Count - 1); // we should make sure that this is functioning
                 searchIndex--;
+                if (searchIndex < 0)
+                    return false;
                 if (potentialNodes[searchIndex].Count > 0)
                 {
                     partialPath.Add(potentialNodes[searchIndex].Dequeue()); // And extend path to first of these
