@@ -145,17 +145,25 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
     {
         int vertex = partialPath.Last();
         List<int[]> edgesOfVertex = g.GetAllEdgesOfNode(vertex);
+        List<int[]> skipEdge = new List<int[]>();
         foreach (int[] edge in edgesOfVertex)
         {
-            if (EdgeRequired(edge) && !ListContains(required, edge))//EdgeRequired(edge[0], edge[1])
-            {
-                required.Add(edge);
-                //bool result = undecided.Remove(edge);
-                RemoveFromList(undecided, edge);
-                int checkitworked = 1;
-            }
+            if (!ListContains(skipEdge, edge))
+                if (EdgeRequired(edge) && !ListContains(required, edge))//EdgeRequired(edge[0], edge[1])
+                {
+                    required.Add(edge);
+                    //bool result = undecided.Remove(edge);
+                    RemoveFromList(undecided, edge);
+                    if (g.UVBiDirectional(edge[0], edge[1]))
+                    {
+                        deleted.Add(new int[] { edge[1], edge[0] });
+                        RemoveFromList(undecided, new int[] { edge[1], edge[0] });
+                        skipEdge.Add(new int[] { edge[1], edge[0] });
+                        g.RemoveEdgeDirected(edge[1], edge[0]);
+                    }
+                }
         }
-        AssignDirection(vertex);
+        //AssignDirection(vertex);
         DeleteEdges(vertex);
 
         // Failure cases
@@ -221,11 +229,22 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
     //    return false;
     //}
 
+    //public bool EdgeRequired(int[] edge)
+    //{
+    //    //int edgesEntering = g.GetInwardDegree(edge[0]);
+    //    //int edgesLeaving = g.GetOutwardDegree(edge[1]);
+    //    int inwardOfEnd = g.GetInwardDegree(edge[1]);
+    //    int unis = g.GetUniDegree(edge[1]);
+    //    //int uniOf0 = g.GetUniDegree(edge[0]);
+    //    int degOf0 = g.GetDegree(edge[0]);
+    //    bool result = inwardOfEnd - unis == 1 || degOf0 == 2;
+    //    return result;
+    //}
+
     public bool EdgeRequired(int[] edge)
     {
-        //int edgesEntering = g.GetInwardDegree(edge[0]);
-        //int edgesLeaving = g.GetOutwardDegree(edge[1]);
-        return g.GetInwardDegree(edge[1]) == 1;
+        int inwardOfEnd = g.GetInwardDegree(edge[1]);
+        return inwardOfEnd == 1;
     }
 
     public bool EdgeRequired(int u, int v)
@@ -271,9 +290,9 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
             }
             foreach (int[] edge in undecidedEdges)
             {
-                if (edge[0] == vertex && deleteSimilarEdges[0])
+                if (edge[1] == vertex && deleteSimilarEdges[0])
                     edgesToDelete.Add(edge);
-                if (edge[1] == vertex && deleteSimilarEdges[1])
+                if (edge[0] == vertex && deleteSimilarEdges[1])
                     edgesToDelete.Add(edge);
             }
         }
@@ -352,7 +371,7 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
     }
 
     // Forgive me for this terrible function, this is what C# should be doing, but it's actually comparing pointers. 
-    public void RemoveFromList(List<int[]> list, int[] item)
+    public static void RemoveFromList(List<int[]> list, int[] item)
     {
         int index = -1;
         for (int i=0; i < list.Count; i++)
@@ -367,7 +386,7 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
             list.RemoveAt(index);
     }
 
-    public bool ListContains(List<int[]> list, int[] edge)
+    public static bool ListContains(List<int[]> list, int[] edge)
     {
         for (int i = 0; i < list.Count; i++)
         {

@@ -89,6 +89,17 @@ public class AdjGraph
         return inwardCount;
     }
 
+    public int GetUniDegree(int vertex)
+    {
+        int total = 0;
+        foreach (int outward in edges[vertex])
+        {
+            if (UVExist(outward, vertex))
+                total++;
+        }
+        return total;
+    }
+
     public bool UVExist(int u, int v)
     {   // O(E)
         for (int i=0; i < edges[u].Count; i++)

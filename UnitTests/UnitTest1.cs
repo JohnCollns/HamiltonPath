@@ -213,6 +213,18 @@ namespace UnitTests
             g.AddEdgeUni(1, 2);
             Assert.Equal(2, g.GetDegree(1));
         }
+        [Fact]
+        public void DeleteEdgeMakeUniDirected()
+        {
+            AdjGraph g = new AdjGraph(5);
+            g.AddEdgeUni(0, 1);
+            g.AddEdgeUni(1, 2); g.AddEdgeUni(1, 4);
+            g.AddEdgeUni(2, 3);
+            g.AddEdgeUni(3, 0);
+            g.AddEdgeUni(4, 2);
+            g.RemoveEdgeDirected(1, 0);
+            Assert.False(g.UVExist(1, 0));
+        }
     }
 
     public class HamiltonCircuitTests
