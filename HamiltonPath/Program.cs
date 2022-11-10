@@ -1,7 +1,8 @@
 Console.WriteLine("Hello, World!");
 AdjGraph g = new AdjGraph(5);
 g.AddEdgeUni(0, 1);
-g.AddEdgeUni(1, 2); g.AddEdgeUni(1, 4);
+g.AddEdgeUni(1, 2); 
+g.AddEdgeUni(1, 4);
 g.AddEdgeUni(2, 3);
 g.AddEdgeUni(3, 0);
 g.AddEdgeUni(4, 2);
