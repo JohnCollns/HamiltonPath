@@ -269,6 +269,7 @@ namespace UnitTests
             g.AddEdgeDirected(1, 2);    g.AddEdgeDirected(1, 4);
             g.AddEdgeDirected(2, 3);
             g.AddEdgeDirected(3, 0);
+            g.AddEdgeDirected(4, 2);
             RubinSearch search = new RubinSearch();
             Assert.True(search.HasHamiltonCycle(g).hasHamiltonCycle);
         }
@@ -280,6 +281,7 @@ namespace UnitTests
             g.AddEdgeUni(1, 2); g.AddEdgeUni(1, 4);
             g.AddEdgeUni(2, 3);
             g.AddEdgeUni(3, 0);
+            g.AddEdgeUni(4, 2);
             RubinSearch search = new RubinSearch();
             Assert.True(search.HasHamiltonCycle(g).hasHamiltonCycle);
         }

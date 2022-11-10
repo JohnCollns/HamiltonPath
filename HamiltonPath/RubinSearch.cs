@@ -152,6 +152,7 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
                 required.Add(edge);
                 //bool result = undecided.Remove(edge);
                 RemoveFromList(undecided, edge);
+                int checkitworked = 1;
             }
         }
         AssignDirection(vertex);
@@ -203,21 +204,28 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
         return false;
     }
 
+    //public bool EdgeRequired(int[] edge)
+    //{
+    //    foreach (int node in edge)
+    //    {
+    //        // Find how many edges it has leaving,  if 1 req
+    //        // how many edges it has entering,      if 1 req
+    //        // what its total degree is             if 2 req
+    //        int edgesLeaving, edgesEntering, edgesTotal = 0;
+    //        edgesLeaving = g.GetOutwardDegree(node);
+    //        edgesEntering = g.GetInwardDegree(node);
+    //        edgesTotal = edgesLeaving + edgesEntering;
+    //        if (edgesLeaving == 1 || edgesEntering == 1 || edgesTotal == 2)
+    //            return true;
+    //    }
+    //    return false;
+    //}
+
     public bool EdgeRequired(int[] edge)
     {
-        foreach (int node in edge)
-        {
-            // Find how many edges it has leaving,  if 1 req
-            // how many edges it has entering,      if 1 req
-            // what its total degree is             if 2 req
-            int edgesLeaving, edgesEntering, edgesTotal = 0;
-            edgesLeaving = g.GetOutwardDegree(node);
-            edgesEntering = g.GetInwardDegree(node);
-            edgesTotal = edgesLeaving + edgesEntering;
-            if (edgesLeaving == 1 || edgesEntering == 1 || edgesTotal == 2)
-                return true;
-        }
-        return false;
+        //int edgesEntering = g.GetInwardDegree(edge[0]);
+        //int edgesLeaving = g.GetOutwardDegree(edge[1]);
+        return g.GetInwardDegree(edge[1]) == 1;
     }
 
     public bool EdgeRequired(int u, int v)
@@ -349,7 +357,7 @@ C4. Repeat step C3 until the list is empty. If every node is flagged, then the p
         int index = -1;
         for (int i=0; i < list.Count; i++)
         {
-            if (list[i][0] == item[0] || list[i][1] == item[1])
+            if (list[i][0] == item[0] && list[i][1] == item[1])
             {
                 index = i;
                 break;

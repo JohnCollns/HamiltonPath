@@ -1,10 +1,11 @@
 ﻿// See https://aka.ms/new-console-template for more information
 Console.WriteLine("Hello, World!");
-AdjGraph g = new AdjGraph(3);
-g.AddEdgeDirected(0, 1);
-g.AddEdgeDirected(1, 2); g.AddEdgeDirected(1, 4);
-g.AddEdgeDirected(2, 3);
-g.AddEdgeDirected(3, 0);
+AdjGraph g = new AdjGraph(5);
+g.AddEdgeUni(0, 1);
+g.AddEdgeUni(1, 2); g.AddEdgeUni(1, 4);
+g.AddEdgeUni(2, 3);
+g.AddEdgeUni(3, 0);
+g.AddEdgeUni(4, 2);
 
 Console.WriteLine("Edges of 0:\t");
 List<int[]> edgesOf0 = g.GetAllEdgesOfNode(0);
