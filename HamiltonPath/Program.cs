@@ -3,9 +3,20 @@ AdjGraph g = new AdjGraph(5);
 g.AddEdgeUni(0, 1);
 g.AddEdgeUni(1, 2); 
 g.AddEdgeUni(1, 4);
+g.AddEdgeUni(1, 2);
 g.AddEdgeUni(2, 3);
 g.AddEdgeUni(3, 0);
-g.AddEdgeUni(4, 2);
+g.AddEdgeUni(1, 4);
+g.PrintEdges();
+Solution DFSsol = DFSHamilton.HasHamiltonPath(g, 0);
+Console.WriteLine($"Passes: {DFSsol.hasHamiltonCycle}");
+if (DFSsol.hasHamiltonCycle)
+{
+    Console.Write("Path is: ");
+    foreach (int node in DFSsol.solutionPath)
+        Console.Write($"{node}, ");
+    Console.WriteLine();
+}
 
 Console.WriteLine("Edges of 0:\t");
 List<int[]> edgesOf0 = g.GetAllEdgesOfNode(0);
@@ -21,6 +32,3 @@ if (sol.hasHamiltonCycle)
         Console.Write($"{node}, ");
     Console.WriteLine();
 }
-g.PrintEdges();
-DPBitMaskingSearch dsearch = new DPBitMaskingSearch();
-dsearch.HamiltonianCycle(g);

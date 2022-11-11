@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 // There is a great deal of two way traversal in the search, and that structure would have handled it better. 
 public class AdjGraph
 {
-    public int numVertices { get; }
+    public int numVertices { get; private set; }
     public List<List<int>> edges;
 
     public AdjGraph(int numVertices)
@@ -32,6 +32,13 @@ public class AdjGraph
             for (int j = 0; j < original.edges[i].Count; j++)
                 edges[i].Add(original.edges[i][j]);
         }
+    }
+
+    public int AddNode()
+    {
+        numVertices++;
+        edges.Add(new List<int>());
+        return numVertices;
     }
 
     public void AddEdgeDirected(int entering, int leaving)
@@ -87,6 +94,17 @@ public class AdjGraph
             for (int j = 0; j < edges[i].Count; j++)
                 inwardCount += (edges[i][j] == vertex) ? 1 : 0;
         return inwardCount;
+    }
+
+    public int GetUniDegree(int vertex)
+    {
+        int total = 0;
+        foreach (int outward in edges[vertex])
+        {
+            if (UVExist(outward, vertex))
+                total++;
+        }
+        return total;
     }
 
     public bool UVExist(int u, int v)
