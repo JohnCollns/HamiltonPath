@@ -22,4 +22,5 @@ if (sol.hasHamiltonCycle)
     Console.WriteLine();
 }
 g.PrintEdges();
-
+DPBitMaskingSearch dsearch = new DPBitMaskingSearch();
+dsearch.HamiltonianCycle(g);

@@ -1,6 +1,6 @@
 using System;
 
-class BacktrackingSearch{
+public class BacktrackingSearch{
     public List<int>? HamiltonianCycle(AdjGraph graph){
         for(int i = 0; i < graph.edges.Count; i++){
             List<int>? path = HamiltonianPath(graph, i);
