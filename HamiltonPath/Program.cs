@@ -1,13 +1,7 @@
-Console.WriteLine("Hello, World!");
-AdjGraph g = new AdjGraph(5);
+AdjGraph g = new AdjGraph(3);
 g.AddEdgeUni(0, 1);
 g.AddEdgeUni(1, 2); 
-g.AddEdgeUni(1, 4);
-g.AddEdgeUni(1, 2);
-g.AddEdgeUni(2, 3);
-g.AddEdgeUni(3, 0);
-g.AddEdgeUni(1, 4);
-g.PrintEdges();
+g.AddEdgeUni(0, 2); 
 Solution DFSsol = DFSHamilton.HasHamiltonPath(g, 0);
 Console.WriteLine($"Passes: {DFSsol.hasHamiltonCycle}");
 if (DFSsol.hasHamiltonCycle)
